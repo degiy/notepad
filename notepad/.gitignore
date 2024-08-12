@@ -1,0 +1,6 @@
+# Ignore Python bytecode and cache
+__pycache__/
+
+# Ignore SQLite database
+db.sqlite3
+
