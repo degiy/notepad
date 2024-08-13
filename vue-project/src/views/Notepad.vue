@@ -96,6 +96,7 @@ const fetchDirs = async () => {
     };
     cur_dir.value=-1;
     cur_ent.value=-1;
+    entries.value=[]; 
 }; 
 
 // Handle directory click
@@ -103,16 +104,22 @@ const handleClickDir = (dir) => {
   console.log('click on dir ', dir.id);
   cur_dir.value=dir.id;
   fstatus.value = 'loading entries for dir' + dir.name + '...';
-  entry.value = {};
-  axios.get(`http://localhost:8000/backend/entries/${dir.id}/`)
-    .then(response => {
-      entries.value = response.data;
-      fstatus.value = '';
-    })
-    .catch(error => {
-      entries.value = {};
-      fstatus.value = "error while loading entries for " + dir.name + ': ' + error;
-    });
+  fetchEnts(dir.id);
+}
+
+const fetchEnts = async (id) => {
+  entries.value = [] ;
+  try {
+    const response = await axios.get(`http://localhost:8000/backend/entries/${id}/`)
+    console.log(response.data.length," items fetched");
+    entries.value = response.data;
+    fstatus.value = '';
+  }
+  catch (error) {
+    entries.value = [] ;
+    fstatus.value = "error while loading entries for dir id " + id + ': ' + error;
+  };
+  cur_ent.value = -1;
 };
 
 const showContextMenuD = (event, dir) => {
@@ -175,13 +182,17 @@ const handleAddE= (newElem) =>{
   contextMenuDVisible.value = false;
   if (selectedDir.value)
   {
-    CreateNote(newElem,selectedDir.value.id);
+    CreateNote(newElem, selectedDir.value.id);
+    cur_dir.value = selectedDir.value.id;
+    setTimeout(() => {
+      fetchEnts(cur_dir.value);
+    }, 500);
   }
 } 
 
 const CreateNote = async (eName,idDir) => {
   try {
-    const response = await axios.post('http://localhost:8000/backend/entries/', { name: eName , dir_ref: idDir, content : "" });
+    const response = await axios.post(`http://localhost:8000/backend/entries/${idDir}/`, { name: eName , dir_ref: idDir, content : "" });
     console.log('New note added:', response.data);
   } catch (error) {
     console.error('Error adding note :', error);

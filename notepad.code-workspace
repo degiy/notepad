@@ -1,11 +1,18 @@
 {
-	"folders": [
-		{
-			"path": "notepad"
-		},
-		{
-			"path": "vue-project"
-		}
-	],
-	"settings": {}
+    "folders": [
+        {
+            "path": "notepad"
+        },
+        {
+            "path": "vue-project"
+        }
+    ],
+    "settings": {
+        "[notepad]": {
+            "python.pythonPath": "${workspaceFolder}/venv/bin/python",
+            "python.analysis.extraPaths": [
+                "${workspaceFolder}/notepad"
+            ]
+        }
+    }
 }

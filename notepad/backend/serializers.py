@@ -15,3 +15,9 @@ class EntryNamesSerializer(serializers.ModelSerializer):
     class Meta:
         model = NEntry
         fields =['id','name'] 
+
+# New Serializer for creating entries
+class EntryCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NEntry
+        fields = ['name', 'dir_ref']

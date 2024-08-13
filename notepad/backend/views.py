@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from rest_framework import generics
 from .models import NDir, NEntry
-from .serializers import DirSerializer, EntrySerializer, EntryNamesSerializer
+from .serializers import DirSerializer, EntrySerializer, EntryNamesSerializer, EntryCreateSerializer
 
 def index(request):
     return HttpResponse("use api")
@@ -25,8 +25,14 @@ class EntryListCreate(generics.ListCreateAPIView):
          if dir_id is not None:
             return NEntry.objects.filter(dir_ref=dir_id)
          return NEntry.objects.none()
+     
+     def get_serializer_class(self):
+         if self.request.method == 'POST':
+             return EntryCreateSerializer
+         return EntryNamesSerializer
 
 class EntryDetail(generics.RetrieveUpdateDestroyAPIView):
      queryset = NEntry.objects.all()
      serializer_class = EntrySerializer
+
 
