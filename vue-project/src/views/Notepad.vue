@@ -23,10 +23,16 @@
       <v-col cols="3" class="cent">
         <v-list v-if="entries && ( entries.length > 0) ">
           <v-list-item v-for="mentry in entries" :key="mentry.id" @click="handleClickEnt(mentry)" 
+              @contextmenu.prevent="showContextMenuE($event, mentry)"
               :class="{ 'bold-text': mentry.id === cur_ent }">
             {{ mentry.name }}
           </v-list-item>
         </v-list>
+        <context-menu-ent v-if="contextMenuEVisible" 
+        :position="contextMenuEPosition" :selectedEnt="selectedEnt"
+        @delete="handleDeleteE"
+       @refresh="handleRefreshE"/>
+
       </v-col>
 
       <v-col cols="6" class="right" > <div ref="divr"/>
@@ -47,6 +53,7 @@ import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import axios from 'axios';
 import Editor from '/src/views/Editor.vue';
 import ContextMenuDir from '/src/views/ContextMenuDir.vue';
+import ContextMenuEnt from '/src/views/ContextMenuEnt.vue';
 
 // Reactive state
 const fstatus = ref('loading dirs...');
@@ -63,6 +70,10 @@ const contextMenuDVisible = ref(false);
 const contextMenuDPosition = ref({ x: 0, y: 0 });
 const selectedDir = ref(null);
 
+const contextMenuEVisible = ref(false);
+const contextMenuEPosition = ref({ x: 0, y: 0 });
+const selectedEnt = ref(null);
+
 let hright=1000;
 
 // Fetch directories on mount
@@ -71,12 +82,14 @@ onMounted(() => {
   handleResize();
   window.addEventListener('resize', handleResize);
   document.addEventListener('click', hideContextMenuD);
+  document.addEventListener('click', hideContextMenuE);
   console.log("notepad mounted")
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize);
   document.removeEventListener('click', hideContextMenuD);
+  document.removeEventListener('click', hideContextMenuE);
   console.log("notepad unmounted")
 });
 
@@ -125,6 +138,7 @@ const fetchEnts = async (id) => {
 const showContextMenuD = (event, dir) => {
   contextMenuDPosition.value = { x: event.clientX, y: event.clientY };
   contextMenuDVisible.value = true;
+  contextMenuEVisible.value = false;
   selectedDir.value = dir;
 };
 
@@ -177,6 +191,46 @@ const delDirectory = async (dirId) => {
 
 
 // =========================== Entries from here ==========================
+
+const showContextMenuE = (event, ent) => {
+  contextMenuEPosition.value = { x: event.clientX, y: event.clientY };
+  contextMenuEVisible.value = true;
+  contextMenuDVisible.value = false;
+  selectedEnt.value = ent;
+};
+
+const handleDeleteE = () => {
+  if (selectedEnt.value) {
+    delEntry(selectedEnt.value.id);
+  }
+  contextMenuEVisible.value = false;
+  setTimeout(() => { 
+  fstatus.value = 'loading entries for dir' + cur_dir.value + '...';
+  fetchEnts(cur_dir.value);
+  },500); 
+};
+
+const delEntry = async (EntId) => {
+  try {
+    const response = await axios.delete(`http://localhost:8000/backend/entry/${EntId}/`);
+    console.log('Entry deleted:', response.data);
+  } catch (error) {
+    console.error('Error deleting entry:', error);
+  }
+};
+
+const handleRefreshE= () =>{
+  contextMenuEVisible.value = false;
+  setTimeout(() => { 
+  fstatus.value = 'loading entries for dir' + cur_dir.value + '...';
+  fetchEnts(cur_dir.value);
+  },500); 
+};
+
+const hideContextMenuE = () => {
+  contextMenuEVisible.value = false;
+};
+
 
 const handleAddE= (newElem) =>{
   contextMenuDVisible.value = false;
